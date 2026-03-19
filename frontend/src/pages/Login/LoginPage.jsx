@@ -1,6 +1,7 @@
 import LoginForm from "./LoginForm"
 import ParticleUniverse from "../../components/animations/ParticleUniverse"
 import "./login.css"
+import FinTrackLogo from "../../assets/logo/FinTrackLogo.png"
 
 function LoginPage() {
   return (
@@ -10,9 +11,14 @@ function LoginPage() {
         <ParticleUniverse />
 
         <div className="branding">
-          <div className="logo">🛡</div>
-          <h1 className="brand-name">FinShield</h1>
-          <p className="tagline">Secure. Smart. Financial Control.</p>
+          <img
+            src={FinTrackLogo}
+            alt="FinTrack Logo"
+            className="brand-logo"
+          />
+          
+          <h1 className="brand-name">FinTrack</h1>
+          <p className="tagline">Smart. Secure. Financial Management</p>
           <p className="subtext">
             AI-driven personal finance intelligence
           </p>

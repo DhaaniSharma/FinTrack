@@ -8,30 +8,35 @@
 /* LEFT PANEL */
 
 .left-panel {
-  width: 50%;
+  flex: 1;
   background: linear-gradient(135deg, #07142A, #0B1F3B);
   position: relative;
   color: white;
+  overflow: hidden;
 }
 
 /* BRANDING CONTENT */
 
 .branding {
   position: absolute;
-  top: 50%;
+  top: 45%;
   left: 50%;
-  transform: translate(-50%, -40%);
+  transform: translate(-50%, -50%);
   text-align: center;
 }
 
-.logo {
-  font-size: 60px;
-  margin-bottom: 10px;
+.brand-logo {
+  width: 100px;
+  height: auto;
+  margin-bottom:2px;
 }
 
 .brand-name {
-  font-size: 42px;
+  margin-top: 6px;
+  font-size: 44px;
   font-weight: 600;
+  margin-bottom: 6px;
+  color: white;
 }
 
 .tagline {
@@ -189,4 +194,28 @@
   margin-top: 10px;
 }
 
+.login-footer {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer-logo {
+  margin-top: 40px;
+  margin-left: 170px;
+  width: 26px;
+  height: auto;
+  margin-bottom: 2px;
+  
+}
+
+.footer-text {
+  margin-top:0px;
+  margin-left:125px;
+  font-size: 14px;
+  color: #0B1F3B;
+  font-weight: 500;
+}
   

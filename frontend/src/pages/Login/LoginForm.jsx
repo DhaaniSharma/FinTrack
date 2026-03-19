@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
 import "./login.css"
+import FinTrackLogo from "../../assets/logo/FinTrackLogo.png"
 
 function LoginForm() {
 
@@ -58,6 +59,15 @@ function LoginForm() {
       <button className="create-account">
         Create New Account
       </button>
+
+      <div className="login-FOOTER">
+        <img
+          src={FinTrackLogo}
+          alt="FinTrack"
+          className="footer-logo"
+        />
+        <p className="footer-text">© 2024 FinTrack.</p>
+      </div>
 
     </div>
   )
