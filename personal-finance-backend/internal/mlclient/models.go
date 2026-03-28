@@ -9,8 +9,6 @@ type ExpenseInput struct {
 	HealthAndFitness float64 `json:"health_and_fitness"`
 	Shopping         float64 `json:"shopping"`
 	Other            float64 `json:"other"`
-	Investment       float64 `json:"investment"`
-	TotalExpense     float64 `json:"total_expense"`
 }
 
 type PredictionData struct {

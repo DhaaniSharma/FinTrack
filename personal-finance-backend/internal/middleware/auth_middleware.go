@@ -24,7 +24,13 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// 2. Format : Bearer <token>
-		tokenString := strings.TrimPrefix(authHeader, "Bearer")
+		parts := strings.Split(authHeader, " ")
+
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			http.Error(w, "Invalid Authorization header format", http.StatusUnauthorized)
+			return
+		}
+		tokenString := parts[1]
 
 		// 3; Parse Token :
 		secret := os.Getenv("JWT_SECRET")
@@ -34,6 +40,11 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 		if err != nil || !token.Valid {
 			http.Error(w, "Invalid Token", http.StatusUnauthorized)
+			return
+		}
+
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			http.Error(w, "Invalid signing method", http.StatusUnauthorized)
 			return
 		}
 
@@ -50,7 +61,6 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// Store in context :
 		ctx := context.WithValue(r.Context(), UserIDKey, userID)
 
-		// Call next handler with updated context :
 		next(w, r.WithContext(ctx))
 
 	}
