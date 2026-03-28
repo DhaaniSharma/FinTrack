@@ -3,7 +3,7 @@ package mlclient
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -43,7 +43,7 @@ func PredictSpender(input ExpenseInput) (*PredictionData, error) {
 
 	// 6. Handle ML-Level Errors :
 	if mlResp.Status != "success" || mlResp.Data == nil {
-		return nil, errors.New("ML prediction failed: " + mlResp.Message)
+		return nil, fmt.Errorf("ML Prediction Failed: %v", mlResp.Error)
 	}
 	return mlResp.Data, nil
 }
