@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"personal-finance-backend/pkg/database"
 
@@ -21,7 +22,7 @@ Flow:
 */
 
 func GetUserByEmailOrUsername(identifier string) (*models.User, error) {
-	query := `Select user_id, user_name, email, phone, address, password_hashed, currency, google_id, auth_provider from users where email=$1 or user_name=$1 LIMIT 1`
+	query := `Select user_id, user_name, email, phone, address, password_hashed, currency, google_id, auth_provider, COALESCE(age, 0) from users where email=$1 or user_name=$1 LIMIT 1`
 	row := database.DB.QueryRow(context.Background(), query, identifier)
 
 	var user models.User
@@ -35,8 +36,10 @@ func GetUserByEmailOrUsername(identifier string) (*models.User, error) {
 		&user.Currency,
 		&user.GoogleID,
 		&user.AuthProvider,
+		&user.Age,
 	)
 	if err != nil {
+		fmt.Printf("Login scan error: %v\n", err)
 		return nil, errors.New("user not found")
 	}
 	return &user, nil
@@ -85,7 +88,7 @@ func CreateGoogleUser(user *models.User) (int, error) {
 func GetUserByID(userID int) (*models.User, error) {
 
 	query := `
-	 Select user_id, user_name, email, phone, address, password_hashed, currency, google_id, auth_provider, created_at
+	 Select user_id, user_name, email, phone, address, password_hashed, currency, google_id, auth_provider, COALESCE(age, 0), created_at
 	 from users where user_id=$1
 	`
 
@@ -103,6 +106,7 @@ func GetUserByID(userID int) (*models.User, error) {
 		&user.Currency,
 		&user.GoogleID,
 		&user.AuthProvider,
+		&user.Age,
 		&user.CreatedAt,
 	)
 
@@ -111,4 +115,11 @@ func GetUserByID(userID int) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+// UpdateUserAge sets a user's age during onboarding/profile update
+func UpdateUserAge(userID int, age int) error {
+	query := `UPDATE users SET age=$1 WHERE user_id=$2`
+	_, err := database.DB.Exec(context.Background(), query, age, userID)
+	return err
 }

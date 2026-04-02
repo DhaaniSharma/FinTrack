@@ -13,6 +13,8 @@ import (
 	"personal-finance-backend/internal/middleware"
 
 	"personal-finance-backend/internal/dashboard"
+
+	"personal-finance-backend/internal/handler"
 )
 
 func enableCORS(next http.Handler) http.Handler {
@@ -48,16 +50,27 @@ func main() {
 	http.HandleFunc("/auth/login", auth.LoginHandler)
 	http.HandleFunc("/api/profile", middleware.AuthMiddleware(auth.ProfileHandler))
 	http.HandleFunc("/api/dashboard", middleware.AuthMiddleware(dashboard.DashboardHandler))
-	mux := http.NewServeMux()
-
+     mux := http.NewServeMux()
+// 🔹 Auth routes
     mux.HandleFunc("/auth/register", auth.RegisterHandler)
     mux.HandleFunc("/auth/login", auth.LoginHandler)
+
+// 🔹 Google OAuth
+    mux.HandleFunc("/auth/google/login", auth.GoogleLoginHandler)
+    mux.HandleFunc("/auth/google/callback", auth.GoogleCallbackHandler)
+
+// 🔹 Protected routes
     mux.HandleFunc("/api/profile", middleware.AuthMiddleware(auth.ProfileHandler))
     mux.HandleFunc("/api/dashboard", middleware.AuthMiddleware(dashboard.DashboardHandler))
 
-	 mux.HandleFunc("/auth/google/login", auth.GoogleLoginHandler)
-     mux.HandleFunc("/auth/google/callback", auth.GoogleCallbackHandler)
+// 🔹 Friend ke new routes
+    mux.HandleFunc("/api/onboarding", middleware.AuthMiddleware(handler.OnboardingBatchHandler))
+    mux.HandleFunc("/api/expenses", middleware.AuthMiddleware(handler.CreateExpenseHandler))
+    mux.HandleFunc("/api/incomes", middleware.AuthMiddleware(handler.CreateIncomeHandler))
+    mux.HandleFunc("/api/investments", middleware.AuthMiddleware(handler.CreateInvestmentHandler))
+    mux.HandleFunc("/api/goals", middleware.AuthMiddleware(handler.CreateGoalHandler))
 
-    http.ListenAndServe(":8080", enableCORS(mux))
+// 🚀 Server start
+    http.ListenAndServe(":8080", enableCORS(mux)) 
 
 }
