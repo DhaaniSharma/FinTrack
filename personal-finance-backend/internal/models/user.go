@@ -12,5 +12,6 @@ type User struct {
 	Currency       string    `json:"currency"`
 	GoogleID       *string   `json:"google_id"`
 	AuthProvider   string    `json:"auth_provider"`
+	Age            int       `json:"age"`
 	CreatedAt      time.Time `json:"created_at"`
 }
