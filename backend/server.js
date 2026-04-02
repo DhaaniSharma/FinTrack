@@ -1,0 +1,64 @@
+require("dotenv").config()
+
+const express = require("express")
+const nodemailer = require("nodemailer")
+const cors = require("cors")
+
+const app = express()
+app.use(cors())
+app.use(express.json())
+
+let otpStore = {}
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+})
+
+// Send OTP
+app.post("/send-otp", async (req, res) => {
+  const { email } = req.body
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+  otpStore[email] = {
+    otp,
+    expires: Date.now() + 5 * 60 * 1000
+  }
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "FinTrack OTP Verification",
+      html: `<h2>Your OTP is: ${otp}</h2>`
+    })
+
+    res.json({ success: true })
+  } catch (err) {
+    console.log(err)
+    res.json({ success: false })
+  }
+})
+
+// Verify OTP
+app.post("/verify-otp", (req, res) => {
+  const { email, otp } = req.body
+
+  if (
+    otpStore[email] &&
+    otpStore[email].otp === otp &&
+    Date.now() < otpStore[email].expires
+  ) {
+    res.json({ verified: true })
+  } else {
+    res.json({ verified: false })
+  }
+})
+
+app.listen(5000, () => {
+  console.log("Server running on http://localhost:5000")
+})

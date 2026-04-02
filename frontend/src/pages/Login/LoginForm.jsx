@@ -10,7 +10,7 @@ function LoginForm() {
   return (
     <div className="login-form">
 
-      <h2 className="login-title">Log into FinShield</h2>
+      <h2 className="login-title">Log into FinTrack</h2>
 
       {/* EMAIL FIELD */}
       <input
