@@ -47,3 +47,30 @@ func PredictSpender(input ExpenseInput) (*PredictionData, error) {
 	}
 	return mlResp.Data, nil
 }
+
+type CategorizeReq struct {
+	Strings []string `json:"strings"`
+}
+
+type CategorizeRes struct {
+	Results []string `json:"results"`
+}
+
+func CategorizeExpense(input string) string {
+	payload, _ := json.Marshal(CategorizeReq{Strings: []string{input}})
+	client := &http.Client{Timeout: 5 * time.Second}
+	req, _ := http.NewRequest(http.MethodPost, "http://127.0.0.1:8000/predict/categorize", bytes.NewBuffer(payload))
+	req.Header.Set("Content-Type", "application/json")
+	
+	resp, err := client.Do(req)
+	if err != nil {
+		return "other" // Fallback classification if Python server is unreachable
+	}
+	defer resp.Body.Close()
+
+	var mlResp CategorizeRes
+	if err := json.NewDecoder(resp.Body).Decode(&mlResp); err == nil && len(mlResp.Results) > 0 {
+		return mlResp.Results[0]
+	}
+	return "other"
+}

@@ -3,7 +3,10 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
+	"time"
 	"personal-finance-backend/internal/middleware"
+	"personal-finance-backend/internal/mlclient"
 	"personal-finance-backend/internal/models"
 	"personal-finance-backend/internal/repository"
 )
@@ -33,6 +36,12 @@ func OnboardingBatchHandler(w http.ResponseWriter, r *http.Request) {
 
 	for i := range payload.Expenses {
 		payload.Expenses[i].UserID = userID
+		rawLower := strings.ToLower(payload.Expenses[i].Category)
+		if override, exists := repository.GetOverride(userID, rawLower); exists {
+			payload.Expenses[i].Category = override
+		} else {
+			payload.Expenses[i].Category = mlclient.CategorizeExpense(payload.Expenses[i].Category)
+		}
 	}
 	_ = repository.CreateExpensesBatch(payload.Expenses)
 
@@ -71,6 +80,17 @@ func CreateExpenseHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	expense.UserID = userID
 
+	if expense.ExpenseDate == "" {
+		expense.ExpenseDate = time.Now().Format("2006-01-02")
+	}
+
+	rawLower := strings.ToLower(expense.Category)
+	if override, exists := repository.GetOverride(userID, rawLower); exists {
+		expense.Category = override
+	} else {
+		expense.Category = mlclient.CategorizeExpense(expense.Category)
+	}
+
 	if err := repository.CreateExpense(expense); err != nil {
 		http.Error(w, "Failed to create expense", http.StatusInternalServerError)
 		return
@@ -95,6 +115,10 @@ func CreateIncomeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	income.UserID = userID
+
+	if income.IncomeDate == "" {
+		income.IncomeDate = time.Now().Format("2006-01-02")
+	}
 
 	if err := repository.CreateIncome(income); err != nil {
 		http.Error(w, "Failed to create income", http.StatusInternalServerError)
@@ -121,6 +145,10 @@ func CreateInvestmentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	investment.UserID = userID
 
+	if investment.InvestmentDate == "" {
+		investment.InvestmentDate = time.Now().Format("2006-01-02")
+	}
+
 	if err := repository.CreateInvestment(investment); err != nil {
 		http.Error(w, "Failed to create investment", http.StatusInternalServerError)
 		return
@@ -145,6 +173,11 @@ func CreateGoalHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	goal.UserID = userID
+
+	// TargetDate usually requires manual setting, but defaulting to +1 year if empty is a safe fallback
+	if goal.TargetDate == "" {
+		goal.TargetDate = time.Now().AddDate(1, 0, 0).Format("2006-01-02")
+	}
 
 	if err := repository.CreateGoal(goal); err != nil {
 		http.Error(w, "Failed to create goal", http.StatusInternalServerError)
