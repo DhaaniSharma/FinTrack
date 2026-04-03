@@ -39,6 +39,7 @@ func main() {
 	http.HandleFunc("/api/incomes", middleware.AuthMiddleware(handler.CreateIncomeHandler))
 	http.HandleFunc("/api/investments", middleware.AuthMiddleware(handler.CreateInvestmentHandler))
 	http.HandleFunc("/api/goals", middleware.AuthMiddleware(handler.CreateGoalHandler))
+	http.HandleFunc("/api/ml/override", middleware.AuthMiddleware(handler.CreateOverrideHandler))
 	http.ListenAndServe(":8080", nil)
 
 }

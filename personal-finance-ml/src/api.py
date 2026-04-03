@@ -1,14 +1,64 @@
 from fastapi import FastAPI
 from pydantic import BaseModel 
-from typing import Dict
+from typing import Dict, List
 from src.inference import predict_spender_type
 from fastapi import HTTPException, status 
+from transformers import pipeline
 
 app = FastAPI(
     title="Personal Finance ML API", 
     description="Spending Behaviour Prediction Service",  
     version="1.0.0"
 )
+
+# Initialize BERT pipeline (Zero-Shot)
+classifier = pipeline("zero-shot-classification", model="typeform/distilbert-base-uncased-mnli")
+
+EXPENSE_CATEGORIES = [
+    "food_and_drink",
+    "rent",
+    "utilities",
+    "entertainment",
+    "travel",
+    "health_and_fitness",
+    "shopping",
+    "other"
+]
+
+CLEAN_CATEGORIES = [
+    "food and drink",
+    "rent",
+    "utilities",
+    "entertainment",
+    "travel",
+    "health and fitness",
+    "shopping",
+    "other"
+]
+
+LABEL_MAP = {clean: raw for clean, raw in zip(CLEAN_CATEGORIES, EXPENSE_CATEGORIES)}
+
+class CategorizeInput(BaseModel):
+    strings: List[str]
+
+class CategorizeOutput(BaseModel):
+    results: List[str]
+
+@app.post("/predict/categorize", response_model=CategorizeOutput, status_code=status.HTTP_200_OK)
+def categorize_expense(data: CategorizeInput):
+    try:
+        results = []
+        # Process strings one by one against the 8 categories
+        for text in data.strings:
+            prediction = classifier(text, CLEAN_CATEGORIES)
+            best_label = prediction["labels"][0]
+            results.append(LABEL_MAP[best_label])
+        return {"results": results}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 # -----------------------------
 # INPUT SCHEMA (VALIDATION)
