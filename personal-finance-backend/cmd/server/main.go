@@ -31,19 +31,16 @@ func enableCORS(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
 func main() {
 
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
 	err = database.ConnectDB()
 	if err != nil {
 		log.Fatal("Error connecting to the database")
 	}
-
 	log.Println("Server running on : 8080")
 
 	http.HandleFunc("/auth/register", auth.RegisterHandler)
@@ -52,28 +49,30 @@ func main() {
 	http.HandleFunc("/api/dashboard", middleware.AuthMiddleware(dashboard.DashboardHandler))
 	mux := http.NewServeMux()
 
-	// 🔹 Auth routes
+	//  Auth routes
 	mux.HandleFunc("/auth/register", auth.RegisterHandler)
 	mux.HandleFunc("/auth/login", auth.LoginHandler)
 
-	// 🔹 Google OAuth
+	//  Google OAuth
 	mux.HandleFunc("/auth/google/login", auth.GoogleLoginHandler)
 	mux.HandleFunc("/auth/google/callback", auth.GoogleCallbackHandler)
 
-	// 🔹 Protected routes
+	//  Protected routes
 	mux.HandleFunc("/api/profile", middleware.AuthMiddleware(auth.ProfileHandler))
 	mux.HandleFunc("/api/dashboard", middleware.AuthMiddleware(dashboard.DashboardHandler))
 
-	// 🔹 Onboarding + Finance routes
+	//  Onboarding + Finance routes
 	mux.HandleFunc("/api/onboarding", middleware.AuthMiddleware(handler.OnboardingBatchHandler))
 	mux.HandleFunc("/api/expenses", middleware.AuthMiddleware(handler.CreateExpenseHandler))
 	mux.HandleFunc("/api/incomes", middleware.AuthMiddleware(handler.CreateIncomeHandler))
 	mux.HandleFunc("/api/investments", middleware.AuthMiddleware(handler.CreateInvestmentHandler))
 	mux.HandleFunc("/api/goals", middleware.AuthMiddleware(handler.CreateGoalHandler))
 
-	// 🔹 ML Override (NEW from incoming)
+	//  ML Override (NEW from incoming)
 	mux.HandleFunc("/api/ml/override", middleware.AuthMiddleware(handler.CreateOverrideHandler))
+	mux.HandleFunc("/api/ml/predict", handler.PredictMLHandler)
+	mux.HandleFunc("/api/ml/retrain", handler.RetrainMLHandler)
 
-	// 🚀 Server start
+	//  Server start
 	http.ListenAndServe(":8080", enableCORS(mux))
 }
