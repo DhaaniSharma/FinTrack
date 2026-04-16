@@ -1,0 +1,174 @@
+/* GLOBAL DASHBOARD RESET */
+.dashboard-page {
+  min-height: 100vh;
+  background: #0B1F3B; /* Deep Blue Background */
+  font-family: sans-serif;
+}
+
+.dashboard-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 230px;
+  background: #07142A; /* Darker Navy for contrast */
+  color: white;
+  padding: 25px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.logo {
+  margin-top: 0;
+  margin-bottom: 40px;
+  font-size: 24px;
+}
+
+.menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu li {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  color: #94A3B8;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.menu li:hover,
+.menu .active {
+  background: #163A6B; /* Slate Blue Hover */
+  color: white;
+}
+
+/* ICON STYLING */
+.menu-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 12px;
+}
+
+/* MAIN WRAPPER */
+.main-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 25px 30px;
+  overflow-y: auto;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  color: white;
+}
+
+.search-bar {
+  width: 300px;
+  padding: 12px 20px;
+  border-radius: 25px;
+  border: none;
+  background: rgba(255,255,255,0.08);
+  color: white;
+  outline: none;
+}
+
+.search-bar::placeholder {
+  color: #94A3B8;
+}
+
+.profile {
+  background: rgba(255,255,255,0.08);
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+/* DASHBOARD BODY */
+.dashboard-body {
+  display: flex;
+  gap: 25px;
+  flex: 1;
+  align-items: stretch; 
+}
+
+/* COLUMNS */
+.main-content {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: transparent;
+  align-items: stretch;
+}
+
+/* UNIFIED WARM WHITE CARDS */
+.card, .chart-box, .cashflow{
+  background: #FCFBF8; /* Warm White */
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.side-card { 
+  width: 100%;
+  min-height: 180px;
+  box-sizing: border-box;
+  background: #FCFBF8;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* SKELETON HEIGHTS */
+.cards { display: flex; gap: 20px; }
+.card { flex: 1; min-height: 130px; }
+
+.charts { display: flex; gap: 20px; }
+.chart-box { flex: 1; min-height: 220px; }
+
+.cashflow { min-height: 280px; }
+
+/* FIX FOR THE RIGHT PANEL CARDS */
+.side-card { 
+  flex: 1; /* This forces the cards to stretch and evenly cover all remaining vertical space */
+  display: flex;
+  flex-direction: column;
+}
+
+/* SPENDING BEHAVIOR EXCEPTION */
+.ml-card {
+  background: linear-gradient(135deg, #163A6B 0%, #0B1F3B 100%);
+}
+.ml-card h4 {
+  color: #94A3B8 !important;
+}
+
+/* TYPOGRAPHY */
+h4 {
+  margin: 0;
+  font-size: 15px;
+  color: #1E293B; /* Deep slate for readability on warm white */
+  font-weight: 600;
+}
