@@ -109,6 +109,28 @@ function DashboardForm() {
     }
   };
 
+  const deleteTransaction = async (id, type) => {
+    if (!window.confirm("Are you sure you want to delete this transaction? Operations and analytics will automatically rebalance.")) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:8080/api/activity/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ id, type })
+      });
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert("Failed to delete transaction.");
+      }
+    } catch (err) {
+      alert("Network error.");
+    }
+  };
+
   if (loading) {
     return (
       <div className="dashboard-container" style={{ alignItems: "center", justifyContent: "center", color: "white" }}>
@@ -332,12 +354,12 @@ function DashboardForm() {
             
             <div className="cards">
               <div className="card">
-                <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Net Worth</p>
-                <h2 style={{ margin: "5px 0", color: "#0f172a" }}>₹{data?.total_net_worth?.toFixed(2) || "0.00"}</h2>
+                <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Current Balance</p>
+                <h2 style={{ margin: "5px 0", color: "#0f172a" }}>₹{data?.current_balance?.toFixed(2) || "0.00"}</h2>
               </div>
               <div className="card">
-                <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Total Income</p>
-                <h2 style={{ margin: "5px 0", color: "#22c55e" }}>₹{data?.total_income?.toFixed(2) || "0.00"}</h2>
+                <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Net Worth</p>
+                <h2 style={{ margin: "5px 0", color: "#22c55e" }}>₹{data?.total_net_worth?.toFixed(2) || "0.00"}</h2>
               </div>
               <div className="card">
                 <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Total Investments</p>
@@ -484,7 +506,14 @@ function DashboardForm() {
                                   {act.category.replace(/_/g, ' ')} ✏️
                                 </span>
                               )}
-                            </div>
+                               <span 
+                                  onClick={() => deleteTransaction(act.id, act.type)}
+                                  style={{ fontSize: "11px", background: "#fef2f2", padding: "3px 8px", borderRadius: "12px", color: "#b91c1c", cursor: "pointer", border: "1px solid #fecaca", fontWeight: "bold" }}
+                                  title="Delete Transaction"
+                                >
+                                  🗑️ Delete
+                                </span>
+                             </div>
                          </div>
                          <strong style={{ alignSelf: "center", color: color, fontSize: "15px" }}>{prefix}₹{act.amount.toFixed(2)}</strong>
                       </li>

@@ -258,4 +258,31 @@ func UpdateGoalHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"message":"Goal updated successfully"}`))
 }
 
+type DeleteActivityRequest struct {
+	ID   int    `json:"id"`
+	Type string `json:"type"`
+}
+
+func DeleteActivityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+	var req DeleteActivityRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	if err := repository.DeleteTransaction(userID, req.Type, req.ID); err != nil {
+		http.Error(w, "Failed to delete transaction", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message":"Transaction deleted successfully"}`))
+}
 

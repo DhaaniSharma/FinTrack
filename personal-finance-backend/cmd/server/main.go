@@ -70,6 +70,7 @@ func main() {
 	mux.HandleFunc("/api/goals", middleware.AuthMiddleware(handler.CreateGoalHandler))
 	mux.HandleFunc("/api/goals/update", middleware.AuthMiddleware(handler.UpdateGoalHandler))
 	mux.HandleFunc("/api/activity", middleware.AuthMiddleware(handler.GetActivityHandler))
+	mux.HandleFunc("/api/activity/delete", middleware.AuthMiddleware(handler.DeleteActivityHandler))
 
 	//  ML Override (NEW from incoming)
 	mux.HandleFunc("/api/ml/override", middleware.AuthMiddleware(handler.CreateOverrideHandler))

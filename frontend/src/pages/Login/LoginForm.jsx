@@ -9,77 +9,77 @@ function LoginForm() {
 
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
-  
+
   const [showPassword, setShowPassword] = useState(false)
-  
+
   const handleLogin = async () => {
-  try {
-    const res = await fetch("http://localhost:8080/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        identifier: identifier,
-        password: password
+    try {
+      const res = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          identifier: identifier,
+          password: password
+        })
       })
-    })
 
-    let data
-    let text
+      let data
+      let text
 
-    const contentType = res.headers.get("content-type")
+      const contentType = res.headers.get("content-type")
 
-    if (contentType && contentType.includes("application/json")) {
-    data = await res.json()
-    } else {
-    text = await res.text()
-   }
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json()
+      } else {
+        text = await res.text()
+      }
 
-    if (res.ok) {
-      alert("Login successful ✅")
-      localStorage.setItem("token", data?.token)
-      navigate("/dashboard")
-    } else {
-      alert(
-        data?.error ||
-        data?.message ||
-        text ||
-        "Invalid username or password ❌"
-      )
+      if (res.ok) {
+        alert("Login successful ")
+        localStorage.setItem("token", data?.token)
+        navigate("/dashboard")
+      } else {
+        alert(
+          data?.error ||
+          data?.message ||
+          text ||
+          "Invalid username or password "
+        )
+      }
+
+    } catch (err) {
+      console.log("ERROR:", err)
+      alert("Server error ")
     }
-
-  } catch (err) {
-    console.log("ERROR:", err)
-    alert("Server error ❌")
   }
-}
 
 
   return (
-    
+
     <div className="login-form">
 
       <h2 className="login-title">Log into FinTrack</h2>
 
       {/* EMAIL FIELD */}
-       <input
-       type="text"
-      placeholder="Email or Username"
-      className="input-field"
-      value={identifier}
-      onChange={(e) => setIdentifier(e.target.value)}
+      <input
+        type="text"
+        placeholder="Email or Username"
+        className="input-field"
+        value={identifier}
+        onChange={(e) => setIdentifier(e.target.value)}
       />
 
       {/* PASSWORD FIELD */}
       <div className="password-wrapper">
-          <input
+        <input
           type={showPassword ? "text" : "password"}
           placeholder="Password"
           className="input-field"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-         />
+        />
 
         <span
           className="eye-icon"
@@ -97,24 +97,24 @@ function LoginForm() {
       <p className="forgot-password">
         Forgot password?
       </p>
-      
+
       {/* DIVIDER */}
       <div className="divider">
-      <span>OR</span>
+        <span>OR</span>
       </div>
 
       {/*login with google*/}
-        <button 
-          className="google-login"
-          onClick={() => {
+      <button
+        className="google-login"
+        onClick={() => {
           window.location.href = "http://localhost:8080/auth/google/login"
-          }}
-        >
-           Continue with Google
-        </button>
+        }}
+      >
+        Continue with Google
+      </button>
 
       {/*Create Account*/}
-      <button 
+      <button
         className="create-account"
         onClick={() => navigate("/register")}
       >
@@ -127,12 +127,12 @@ function LoginForm() {
           alt="FinTrack"
           className="footer-logo"
         />
-        <p className="footer-text">© 2024 FinTrack.</p>
+        <p className="footer-text"> 2026 FinTrack.</p>
       </div>
 
     </div>
   )
-  
+
 }
 
 export default LoginForm

@@ -6,6 +6,7 @@ import (
 )
 
 type DashboardResponse struct {
+	CurrentBalance   float64               `json:"current_balance"`
 	TotalNetWorth    float64               `json:"total_net_worth"`
 	TotalIncome      float64               `json:"total_income"`
 	TotalExpenses    float64               `json:"total_expenses"`
@@ -49,17 +50,19 @@ func GetDashboardData(userID int) (*DashboardResponse, error) {
 		spenderType = mlResult.SpenderType
 	}
 
-	netWorth := metrics["total_income"] + metrics["total_investments"] - metrics["total_expenses"]
+	currentBalance := metrics["total_income"] - metrics["total_expenses"] - metrics["total_investments"]
+	netWorth := currentBalance + metrics["total_investments"]
 
 	return &DashboardResponse{
+		CurrentBalance:   currentBalance,
 		TotalNetWorth:    netWorth,
 		TotalIncome:      metrics["total_income"],
 		TotalExpenses:    metrics["total_expenses"],
 		TotalInvestments: metrics["total_investments"],
-		MonthlyBurnRate:  metrics["monthly_burn_rate"],
-		ExpenseBreakdown: breakdown,
-		MLSpenderType:    spenderType,
-		ActiveGoals:      goals,
-		RecentActivity:   recent,
+		MonthlyBurnRate  : metrics["monthly_burn_rate"],
+		ExpenseBreakdown : breakdown,
+		MLSpenderType    : spenderType,
+		ActiveGoals      : goals,
+		RecentActivity   : recent,
 	}, nil
 }
