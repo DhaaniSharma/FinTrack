@@ -23,7 +23,7 @@ function MLGraph() {
         },
         body: JSON.stringify({
           user_id: userId,
-          start_month: Number(start), 
+          start_month: Number(start),
           end_month: Number(end),
         }),
       });
@@ -88,24 +88,6 @@ function MLGraph() {
 
       {/* INPUTS */}
       <div style={{ marginBottom: "20px" }}>
-        <input
-          type="number"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-          placeholder="Start Month"
-          style={{
-            marginRight: "10px",
-            padding: "10px",
-            borderRadius: "8px",
-            border: "1px solid #334155",
-            background: "#1e293b",
-            color: "white",
-            outline: "none",
-            width: "120px",
-          }}
-          onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
-          onBlur={(e) => (e.target.style.border = "1px solid #334155")}
-        />
 
         <input
           type="number"
@@ -196,7 +178,7 @@ function MLGraph() {
         <div
           style={{
             marginTop: "20px",
-            padding: "10px", 
+            padding: "10px",
             borderRadius: "16px",
             background: "#020617",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
@@ -209,7 +191,7 @@ function MLGraph() {
             key={plotHTML}
             srcDoc={plotHTML}
             width="100%"
-            height="500px" 
+            height="500px"
             style={{
               border: "none",
               borderRadius: "12px",
