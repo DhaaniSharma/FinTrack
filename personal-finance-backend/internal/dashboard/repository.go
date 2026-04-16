@@ -79,3 +79,47 @@ func GetActiveGoals(userID int) ([]models.Goal, error) {
 	}
 	return goals, nil
 }
+
+func GetRecentActivity(userID int, limit int) ([]models.Activity, error) {
+	query := `
+	SELECT type, description, category, amount, date FROM (
+		SELECT 'expense' as type, 
+		       COALESCE(NULLIF(description, ''), COALESCE(category, '')) as description, 
+		       COALESCE(category, '') as category, 
+		       COALESCE(amount, 0) as amount, 
+		       COALESCE(created_at::TEXT, expense_date::TEXT, '') as date 
+		FROM expenses WHERE user_id=$1
+		UNION ALL
+		SELECT 'income', 
+		       COALESCE(source, '') as description, 
+		       '' as category, 
+		       COALESCE(amount, 0) as amount, 
+		       COALESCE(created_at::TEXT, income_date::TEXT, '') as date 
+		FROM incomes WHERE user_id=$1
+		UNION ALL
+		SELECT 'investment', 
+		       COALESCE(asset_type, '') as description, 
+		       '' as category, 
+		       COALESCE(amount, 0) as amount, 
+		       COALESCE(created_at::TEXT, investment_date::TEXT, '') as date 
+		FROM investments WHERE user_id=$1
+	) as activity_feed
+	ORDER BY date DESC
+	LIMIT $2
+	`
+	rows, err := database.DB.Query(context.Background(), query, userID, limit)
+	if err != nil {
+		return []models.Activity{}, nil
+	}
+	defer rows.Close()
+
+	var activities []models.Activity
+	for rows.Next() {
+		var a models.Activity
+		if err := rows.Scan(&a.Type, &a.Description, &a.Category, &a.Amount, &a.Date); err == nil {
+			activities = append(activities, a)
+		}
+	}
+	return activities, nil
+}
+

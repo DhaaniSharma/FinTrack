@@ -24,5 +24,14 @@ func ConnectDB() error {
 	DB = pool
 	fmt.Println("Connected to PostgreSQL database successfully.")
 
+	// Auto-migrate schema
+	_, migrationErr := DB.Exec(context.Background(), "ALTER TABLE expenses ADD COLUMN IF NOT EXISTS description VARCHAR(255) DEFAULT '';")
+	if migrationErr != nil {
+		fmt.Println("Migration notice:", migrationErr)
+	}
+	DB.Exec(context.Background(), "ALTER TABLE expenses ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
+	DB.Exec(context.Background(), "ALTER TABLE incomes ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
+	DB.Exec(context.Background(), "ALTER TABLE investments ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;")
+
 	return nil
 }

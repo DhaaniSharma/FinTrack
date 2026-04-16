@@ -17,6 +17,13 @@ func CreateGoalsBatch(goals []models.Goal) error {
 		if err := CreateGoal(goal); err != nil {
 			return err
 		}
-	}
+}
 	return nil
 }
+
+func UpdateGoal(userID int, goalID int, targetAmount float64, targetDate string) error {
+	query := `UPDATE goals SET target_amount = $1, target_date = $2 WHERE id = $3 AND user_id = $4`
+	_, err := database.DB.Exec(context.Background(), query, targetAmount, targetDate, goalID, userID)
+	return err
+}
+

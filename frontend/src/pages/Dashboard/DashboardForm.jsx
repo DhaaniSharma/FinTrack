@@ -1,6 +1,293 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as PieTooltip, BarChart, Bar, XAxis, Tooltip as BarTooltip } from "recharts";
+import "./dashboard.css";
+
 function DashboardForm() {
+  const navigate = useNavigate();
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [overrideModal, setOverrideModal] = useState({ isOpen: false, itemDesc: "" });
+  const [overrideInput, setOverrideInput] = useState("");
+  const [settingsModal, setSettingsModal] = useState(false);
+  const [goalEditModal, setGoalEditModal] = useState({ isOpen: false, goal: null, amount: "", date: "" });
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/");
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:8080/api/dashboard?t=${Date.now()}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const json = await res.json();
+        setData(json);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboard();
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
+  const handleEditCategory = (rawText) => {
+    setOverrideModal({ isOpen: true, itemDesc: rawText });
+    setOverrideInput("");
+  };
+
+  const submitEditCategory = async () => {
+    const rawText = overrideModal.itemDesc;
+    const override = overrideInput;
+    if (!override || override.trim() === "") return;
+    
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:8080/api/ml/override", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          raw_text: rawText,
+          corrected_category: override.toLowerCase().replace(/ /g, "_")
+        })
+      });
+      if (res.ok) {
+        alert("Awesome! The AI has been permanently trained to understand this!");
+        // Refresh dashboard immediately
+        window.location.reload();
+      } else {
+        alert("Failed to override category.");
+      }
+    } catch(err) {
+      alert("Network error.");
+    }
+  };
+
+  const submitGoalEdit = async () => {
+    const token = localStorage.getItem("token");
+    if (!goalEditModal.amount || !goalEditModal.date) return;
+    try {
+      const res = await fetch("http://localhost:8080/api/goals/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          goal_id: goalEditModal.goal.id,
+          target_amount: parseFloat(goalEditModal.amount),
+          target_date: goalEditModal.date
+        })
+      });
+      if (res.ok) {
+        alert("Goal Target updated successfully!");
+        window.location.reload();
+      } else {
+        alert("Failed to update goal.");
+      }
+    } catch (e) {
+      alert("Network error.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="dashboard-container" style={{ alignItems: "center", justifyContent: "center", color: "white" }}>
+        <h2>Loading your financial intelligence...</h2>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-container" style={{ alignItems: "center", justifyContent: "center", color: "#FF4D4D" }}>
+        <h2>Error: {error}</h2>
+        <button onClick={handleLogout} style={{ padding: "10px", marginTop: "10px" }}>Return to Login</button>
+      </div>
+    );
+  }
+
+  // Formatting for Charts
+  const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6'];
+  const pieData = Object.entries(data?.expense_breakdown || {})
+    .filter(([_, value]) => value > 0)
+    .map(([name, value]) => ({ name: name.replace(/_/g, ' '), value }));
+
+  // Filtering Logic for Real-Time Search
+  const filteredActivity = data?.recent_activity?.filter((act) => {
+    if (!searchQuery) return true;
+    const lowerQ = searchQuery.toLowerCase();
+    return (
+      act.description.toLowerCase().includes(lowerQ) ||
+      act.type.toLowerCase().includes(lowerQ) ||
+      act.amount.toString().includes(lowerQ)
+    );
+  }) || [];
+
+  // Truncate to 5 if no search active
+  const displayActivity = searchQuery ? filteredActivity : filteredActivity.slice(0, 5);
+
   return (
     <div className="dashboard-container">
+      {/* NATIVE REACT ML MODAL UI */}
+      {overrideModal.isOpen && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0, 
+          backgroundColor: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(4px)",
+          display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999
+        }}>
+          <div style={{
+            background: "white", padding: "30px", borderRadius: "16px",
+            width: "90%", maxWidth: "400px", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+          }}>
+            <h3 style={{ margin: "0 0 10px", color: "#0f172a" }}>Teach the AI!</h3>
+            <p style={{ margin: "0 0 20px", color: "#64748b", fontSize: "14px" }}>
+              What is the CORRECT category for "<strong style={{color:"#0f172a"}}>{overrideModal.itemDesc}</strong>"?
+            </p>
+            <input 
+              type="text" 
+              placeholder="e.g. shopping, travel, utilities, food and drink"
+              value={overrideInput}
+              onChange={(e) => setOverrideInput(e.target.value)}
+              style={{
+                width: "100%", padding: "12px", border: "1px solid #cbd5e1", borderRadius: "8px", 
+                marginBottom: "20px", outline: "none", fontSize: "14px", boxSizing: "border-box"
+              }}
+              autoFocus
+            />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button 
+                onClick={() => setOverrideModal({ isOpen: false, itemDesc: "" })}
+                style={{ padding: "10px 16px", background: "transparent", color: "#64748b", border: "none", cursor: "pointer", fontWeight: "600" }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitEditCategory}
+                style={{ padding: "10px 16px", background: "#ef4444", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}
+              >
+                Save AI Rule
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REACT SETTINGS MODAL */}
+      {settingsModal && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0, 
+          backgroundColor: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(4px)",
+          display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999
+        }}>
+          <div style={{
+            background: "#f4efe8", padding: "30px", borderRadius: "20px",
+            width: "90%", maxWidth: "450px", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+          }}>
+            <h3 style={{ margin: "0 0 5px", color: "#0f172a", fontSize: "22px" }}>Account Settings</h3>
+            <p style={{ margin: "0 0 25px", color: "#64748b", fontSize: "14px" }}>Manage your profile and platform preferences.</p>
+            
+            <div style={{ marginBottom: "20px" }}>
+              <label style={{ display: "block", color: "#475569", fontWeight: "600", marginBottom: "8px", fontSize: "14px" }}>Profile Identity</label>
+              <div style={{ background: "white", padding: "12px 16px", borderRadius: "10px", border: "1px solid #cbd5e1", color: "#1e293b", fontWeight: "500", display: "flex", justifyContent: "space-between" }}>
+                <span>User Account</span>
+                <span style={{ color: "#3b82f6" }}>Active</span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "25px" }}>
+              <label style={{ display: "block", color: "#475569", fontWeight: "600", marginBottom: "8px", fontSize: "14px" }}>Visual Theme</label>
+              <div style={{ background: "white", padding: "12px 16px", borderRadius: "10px", border: "1px solid #cbd5e1", color: "#1e293b", fontWeight: "500" }}>
+                Moniex Deep Indigo (Active)
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
+               <button 
+                  onClick={() => setSettingsModal(false)}
+                  style={{ padding: "12px 20px", background: "transparent", color: "#64748b", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "15px" }}
+                >
+                  Close
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  style={{ padding: "12px 20px", background: "#191c2b", color: "white", border: "none", borderRadius: "12px", cursor: "pointer", fontWeight: "600", fontSize: "15px" }}
+                >
+                  Sign Out
+                </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REACT GOALS MODAL */}
+      {goalEditModal.isOpen && (
+        <div style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0, 
+          backgroundColor: "rgba(15, 23, 42, 0.7)", backdropFilter: "blur(4px)",
+          display: "flex", justifyContent: "center", alignItems: "center", zIndex: 9999
+        }}>
+          <div style={{
+            background: "white", padding: "30px", borderRadius: "16px",
+            width: "90%", maxWidth: "400px", boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+          }}>
+            <h3 style={{ margin: "0 0 10px", color: "#0f172a" }}>Edit Target Goal</h3>
+            <p style={{ margin: "0 0 20px", color: "#64748b", fontSize: "14px", textTransform: "capitalize" }}>
+              <strong style={{color:"#0f172a"}}>{goalEditModal.goal.goal_name}</strong>
+            </p>
+            
+            <label style={{ display: "block", marginBottom: "8px", color: "#475569", fontWeight: "500", fontSize: "13px" }}>New Target Amount</label>
+            <input 
+              type="number" 
+              value={goalEditModal.amount}
+              onChange={(e) => setGoalEditModal({ ...goalEditModal, amount: e.target.value })}
+              style={{ width: "100%", padding: "12px", border: "1px solid #cbd5e1", borderRadius: "8px", marginBottom: "15px", outline: "none", fontSize: "14px", boxSizing: "border-box" }}
+            />
+            
+            <label style={{ display: "block", marginBottom: "8px", color: "#475569", fontWeight: "500", fontSize: "13px" }}>New Deadline Date</label>
+            <input 
+              type="date" 
+              value={goalEditModal.date}
+              onChange={(e) => setGoalEditModal({ ...goalEditModal, date: e.target.value })}
+              style={{ width: "100%", padding: "12px", border: "1px solid #cbd5e1", borderRadius: "8px", marginBottom: "25px", outline: "none", fontSize: "14px", boxSizing: "border-box" }}
+            />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button 
+                onClick={() => setGoalEditModal({ isOpen: false, goal: null, amount: "", date: "" })}
+                style={{ padding: "10px 16px", background: "transparent", color: "#64748b", border: "none", cursor: "pointer", fontWeight: "600" }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitGoalEdit}
+                style={{ padding: "10px 16px", background: "#3b82f6", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: "600" }}
+              >
+                Update Goal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SIDEBAR */}
       <div className="sidebar">
@@ -8,30 +295,16 @@ function DashboardForm() {
           <h2 className="logo">FinTrack</h2>
           <ul className="menu">
             <li className="active">Dashboard</li>
-            <li>Transactions</li>
-            <li>Investments</li>
-            <li>Activity</li>
+            <li onClick={() => navigate("/transactions")} style={{ cursor: "pointer" }}>Transactions</li>
+            <li onClick={() => navigate("/investments")} style={{ cursor: "pointer" }}>Investments</li>
+            <li onClick={() => navigate("/activity")} style={{ cursor: "pointer" }}>Activity</li>
           </ul>
         </div>
         
-        {/* BOTTOM ANCHORED LINKS WITH CUSTOM SVGS */}
         <div className="sidebar-bottom">
           <ul className="menu">
-            <li className="sidebar-action">
-              <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-              </svg>
-              Settings
-            </li>
-            <li className="sidebar-action">
-              <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-              </svg>
-              Logout
-            </li>
+            <li className="sidebar-action" onClick={() => setSettingsModal(true)} style={{ cursor: "pointer" }}>Settings</li>
+            <li className="sidebar-action" onClick={handleLogout} style={{ cursor: "pointer" }}>Logout</li>
           </ul>
         </div>
       </div>
@@ -43,10 +316,12 @@ function DashboardForm() {
         <div className="header">
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search transactions..."
             className="search-bar"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <div className="profile">👤 User</div>
+          <div className="profile" onClick={() => setSettingsModal(true)}>👤 User</div>
         </div>
 
         {/* DASHBOARD BODY */}
@@ -56,18 +331,116 @@ function DashboardForm() {
           <div className="main-content">
             
             <div className="cards">
-              <div className="card"><h4>Balance</h4></div>
-              <div className="card"><h4>Savings</h4></div>
-              <div className="card"><h4>Investment</h4></div>
+              <div className="card">
+                <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Net Worth</p>
+                <h2 style={{ margin: "5px 0", color: "#0f172a" }}>₹{data?.total_net_worth?.toFixed(2) || "0.00"}</h2>
+              </div>
+              <div className="card">
+                <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Total Income</p>
+                <h2 style={{ margin: "5px 0", color: "#22c55e" }}>₹{data?.total_income?.toFixed(2) || "0.00"}</h2>
+              </div>
+              <div className="card">
+                <p style={{ margin: 0, color: "#64748b", fontSize: "14px" }}>Total Investments</p>
+                <h2 style={{ margin: "5px 0", color: "#3b82f6" }}>₹{data?.total_investments?.toFixed(2) || "0.00"}</h2>
+              </div>
             </div>
 
             <div className="charts">
-              <div className="chart-box"><h4>Expense Breakdown</h4></div>
-              <div className="chart-box"><h4>Saving Goal</h4></div>
+              <div className="chart-box" style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
+               <h4>Expense Breakdown</h4>
+               {pieData.length > 0 ? (
+                 <ResponsiveContainer width="100%" height={150}>
+                   <PieChart>
+                     <Pie
+                       data={pieData}
+                       cx="50%"
+                       cy="50%"
+                       innerRadius={40}
+                       outerRadius={60}
+                       paddingAngle={5}
+                       dataKey="value"
+                     >
+                       {pieData.map((entry, index) => (
+                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                       ))}
+                     </Pie>
+                     <PieTooltip />
+                   </PieChart>
+                 </ResponsiveContainer>
+               ) : (
+                  <p style={{ color: "#94a3b8", fontSize: "14px", marginTop: "15px" }}>No expenses recorded yet.</p>
+               )}
+
+               <ul style={{ listStyle: "none", padding: 0, marginTop: "15px" }}>
+                  {pieData.map((item, i) => (
+                    <li key={i} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0" }}>
+                      <span style={{ textTransform: "capitalize", color: "#475569", fontSize: "14px" }}>
+                         <span style={{ display:"inline-block", width:"8px", height:"8px", backgroundColor:COLORS[i % COLORS.length], borderRadius:"50%", marginRight:"8px" }}></span>
+                         {item.name}
+                      </span>
+                      <strong style={{ color: "#ef4444", fontSize: "14px" }}>₹{item.value.toFixed(2)}</strong>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="chart-box" style={{ overflowY: "auto" }}>
+                <h4>Saving Goals</h4>
+                {data?.active_goals && data.active_goals.length > 0 ? (
+                   <ul style={{ listStyle: "none", padding: 0, marginTop: "15px" }}>
+                      {data.active_goals.map((g, i) => (
+                        <li key={i} style={{ 
+                            marginBottom: "12px", 
+                            padding: "12px", 
+                            border: "1px solid #e2e8f0", 
+                            borderRadius: "8px", 
+                            backgroundColor: "white",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.02)"
+                        }}>
+                           <p style={{ margin: "0 0 5px", fontSize: "14px", fontWeight: "600", color: "#1e293b", textTransform: "capitalize", display: "flex", justifyContent: "space-between" }}>
+                               <span>{g.goal_name}</span>
+                               <span 
+                                  onClick={() => setGoalEditModal({ isOpen: true, goal: g, amount: g.target_amount.toString(), date: g.target_date })}
+                                  style={{ fontSize: "11px", background: "#eff6ff", padding: "2px 8px", borderRadius: "10px", color: "#3b82f6", cursor: "pointer", border: "1px dashed #bfdbfe", fontWeight: "bold" }}
+                                  title="Edit Target Goal"
+                                >
+                                  Edit Target
+                               </span>
+                            </p>
+                           <p style={{ margin: "0", fontSize: "12px", color: "#64748b", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span>Deadline: {g.target_date ? new Date(g.target_date).toLocaleDateString() : "None"}</span>
+                              <span style={{ color: "#0ea5e9", fontWeight: "bold", fontSize: "14px" }}>₹{g.target_amount.toLocaleString()}</span>
+                           </p>
+                        </li>
+                      ))}
+                   </ul>
+                ) : (
+                  <p style={{ color: "#94a3b8", fontSize: "14px", marginTop: "15px" }}>No active goals.</p>
+                )}
+              </div>
             </div>
 
             <div className="cashflow">
-              <h4>Cashflow</h4>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <h4>Total Expenses</h4>
+                  <h2 style={{ margin: "5px 0", color: "#ef4444" }}>₹{data?.total_expenses?.toFixed(2) || "0.00"}</h2>
+                  <p style={{ color: "#64748b", fontSize: "14px", margin: 0 }}>Monthly Burn Rate: ₹{data?.monthly_burn_rate?.toFixed(2) || "0.00"}</p>
+                </div>
+              </div>
+              <div style={{ marginTop: "20px", height: "140px", width: "100%" }}>
+                {pieData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={pieData}>
+                      <XAxis dataKey="name" tick={{fontSize: 10}} interval={0} angle={-25} textAnchor="end" height={40} stroke="#94a3b8" />
+                      <BarTooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} />
+                      <Bar dataKey="value" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={30} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p style={{ color: "#94a3b8", fontSize: "13px" }}>Not enough data for chart.</p>
+                )}
+              </div>
             </div>
 
           </div>
@@ -75,16 +448,54 @@ function DashboardForm() {
           {/* RIGHT COLUMN: SIDE PANEL */}
           <div className="right-panel">
             
-            <div className="side-card ml-card">
-              <h4>Spending Behavior</h4>
+            <div className="side-card ml-card" style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center", minHeight: "135px" }}>
+              <p style={{ margin: 0, color: "#94a3b8", fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px" }}>AI Spending Behavior</p>
+              <h2 style={{ margin: "10px 0", color: "#38bdf8", fontSize: "28px" }}>{data?.ml_spender_type || "Analyzing..."}</h2>
             </div>
 
-            <div className="side-card">
-              <h4>Recent Transactions</h4>
-            </div>
-
-            <div className="side-card">
-              <h4>Upcoming Payments</h4>
+            <div className="side-card" style={{ overflowY: "auto", flex: 2 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <h4>Recent Activity</h4>
+                {searchQuery && <span style={{ fontSize: "12px", color: "#3b82f6", background: "#eff6ff", padding: "2px 8px", borderRadius: "10px" }}>Filtered</span>}
+              </div>
+              
+              <ul style={{ listStyle: "none", padding: 0, marginTop: "15px" }}>
+                 {displayActivity.length > 0 ? (
+                   displayActivity.map((act, i) => {
+                     let color = "#ef4444"; 
+                     let prefix = "-";
+                     if (act.type === "income") { color = "#22c55e"; prefix = "+"; }
+                     if (act.type === "investment") { color = "#3b82f6"; prefix = "-"; }
+                     
+                     return (
+                      <li key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #f1f5f9" }}>
+                         <div style={{ flex: 1, paddingRight: "10px" }}>
+                            <p style={{ margin: 0, fontSize: "14px", fontWeight: "900", color: "#0f172a", textTransform: "capitalize" }}>{act.description}</p>
+                            <div style={{ display: "flex", gap: "8px", alignItems: "center", marginTop: "2px", flexWrap: "wrap" }}>
+                              <p style={{ margin: 0, fontSize: "12px", color: "#64748b" }}>
+                                {new Date(act.date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                              </p>
+                              {act.type === "expense" && act.category && (
+                                <span 
+                                  onClick={() => handleEditCategory(act.description)}
+                                  style={{ fontSize: "11px", background: "#fef2f2", padding: "3px 8px", borderRadius: "12px", color: "#ef4444", cursor: "pointer", border: "1px solid #fca5a5", fontWeight: "bold" }}
+                                  title="Teach the AI a new Category"
+                                >
+                                  {act.category.replace(/_/g, ' ')} ✏️
+                                </span>
+                              )}
+                            </div>
+                         </div>
+                         <strong style={{ alignSelf: "center", color: color, fontSize: "15px" }}>{prefix}₹{act.amount.toFixed(2)}</strong>
+                      </li>
+                     )
+                   })
+                 ) : (
+                    <p style={{ fontSize: "13px", color: "#94a3b8", marginTop: "10px" }}>
+                      {searchQuery ? "No matching records." : "No recent activity tracked."}
+                    </p>
+                 )}
+              </ul>
             </div>
 
           </div>
@@ -93,7 +504,7 @@ function DashboardForm() {
       </div>
 
     </div>
-  )
+  );
 }
 
-export default DashboardForm
+export default DashboardForm;

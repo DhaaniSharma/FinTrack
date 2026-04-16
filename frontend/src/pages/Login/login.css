@@ -9,7 +9,7 @@
 
 .left-panel {
   flex: 1;
-  background: linear-gradient(135deg, #07142A, #0B1F3B);
+  background: linear-gradient(135deg, #141622, #191c2b); /* Moniex Indigo */
   position: relative;
   color: white;
   overflow: hidden;
@@ -55,22 +55,26 @@
 
 .right-panel {
   width: 50%;
-  background: #F8F5F0;
+  background: #191c2b; /* Moniex Indigo backdrop for the card */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .login-form {
-  width: 360px;
+  width: 400px;
   display: flex;
   flex-direction: column;
+  background: #f4efe8; /* Moniex Beige Card */
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
 }
 
 .login-title {
   font-size: 26px;
   margin-bottom: 30px;
-  color: #0B1F3B;
+  color: #1e293b;
 }
 
 .input-field {
@@ -79,17 +83,17 @@
   padding: 0 16px;
   padding-right: 48px;
   border-radius: 14px;
-  border: 2px solid #0B1F3B;
+  border: 1px solid #cbd5e1;
   background: white;
   font-size: 15px;
-  color: #0B1F3B;
+  color: #1e293b;
   outline: none;
   box-sizing: border-box;
 }
 
 .input-field:focus {
-  border-color: #163A6B;
-  box-shadow: 0 0 0 2px rgba(22, 58, 107, 0.15);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
 }
 
 .password-wrapper {
@@ -114,22 +118,23 @@
   padding: 16px;
   border-radius: 32px;
   border: none;
-  background: #163A6B;
+  background: #191c2b;
   color: white;
   font-size: 16px;
   cursor: pointer;
   transition: 0.2s;
+  font-weight: 600;
 }
 
 .login-button:hover {
-  background: #0F2C53;
+  background: #23315a;
 }
 
 .forgot-password {
   margin-top: 16px;
   text-align: center;
   font-size: 14px;
-  color: #0B1F3B;
+  color: #1e293b;
   cursor: pointer;
 }
 .forgot-password:hover {
@@ -158,18 +163,18 @@
   width:100%;
   padding:14px;
   border-radius: 30px;
-  border: 2px solid #0B1F3B;
+  border: 1px solid #cbd5e1;
   background: white;
-  color: #0B1F3B;
+  color: #1e293b;
   font-weight:600;
-  font: size 15px;
+  font-size: 15px;
   cursor: pointer;
   margin-bottom: 14px;
   transition: 0.2s;
 }
 
 .google-login:hover {
-  background: #f2f5fa;
+  background: #f8fafc;
 }
 
 .create-account {
@@ -177,7 +182,7 @@
   padding: 14px;
   border-radius: 28px;
   border: none;
-  background: #0B1F3B;
+  background: #191c2b;
   color: white;
   font-weight: 600;
   font-size: 15px;
@@ -186,7 +191,7 @@
 }
 
 .create-account:hover {
-  background: #0F2C53;
+  background: #23315a;
 }
 
 .google-login,
@@ -200,22 +205,19 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
 }
 
 .footer-logo {
-  margin-top: 40px;
-  margin-left: 170px;
   width: 26px;
   height: auto;
-  margin-bottom: 2px;
-  
+  margin-bottom: 4px;
 }
 
 .footer-text {
-  margin-top:0px;
-  margin-left:125px;
+  margin-top: 0px;
   font-size: 14px;
-  color: #0B1F3B;
+  color: #1e293b;
   font-weight: 500;
 }
   

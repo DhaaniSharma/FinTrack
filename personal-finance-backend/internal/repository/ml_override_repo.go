@@ -13,6 +13,11 @@ func UpsertOverride(userID int, rawText, correctedCategory string) error {
 		DO UPDATE SET corrected_category = EXCLUDED.corrected_category;
 	`
 	_, err := database.DB.Exec(context.Background(), query, userID, rawText, correctedCategory)
+	if err == nil {
+		// Retrospectively update all existing matching expenses for this user
+		updatePast := `UPDATE expenses SET category = $1 WHERE user_id = $2 AND LOWER(description) = LOWER($3)`
+		database.DB.Exec(context.Background(), updatePast, correctedCategory, userID, rawText)
+	}
 	return err
 }
 

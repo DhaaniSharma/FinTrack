@@ -9,6 +9,7 @@ import (
 	"personal-finance-backend/internal/mlclient"
 	"personal-finance-backend/internal/models"
 	"personal-finance-backend/internal/repository"
+	"personal-finance-backend/internal/dashboard"
 )
 
 func OnboardingBatchHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,11 +85,12 @@ func CreateExpenseHandler(w http.ResponseWriter, r *http.Request) {
 		expense.ExpenseDate = time.Now().Format("2006-01-02")
 	}
 
-	rawLower := strings.ToLower(expense.Category)
+	// In the transactions frontend form, we now map user input to expense.Description
+	rawLower := strings.ToLower(expense.Description)
 	if override, exists := repository.GetOverride(userID, rawLower); exists {
 		expense.Category = override
 	} else {
-		expense.Category = mlclient.CategorizeExpense(expense.Category)
+		expense.Category = mlclient.CategorizeExpense(expense.Description)
 	}
 
 	if err := repository.CreateExpense(expense); err != nil {
@@ -188,3 +190,72 @@ func CreateGoalHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(`{"message":"Goal created successfully"}`))
 }
+
+func GetActivityHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+
+	// Fetch up to 100 recent activities for the dedicated page 
+	// NOTE: Requires importing personal-finance-backend/internal/dashboard
+	// Actually to avoid circular imports, I should probably copy the Dashboard import to the top if needed.
+	// We'll see.
+	// Oh wait, handler uses repository. dashboard uses repository. Handler importing dashboard is fine since dashboard doesn't import handler.
+	// Let's just import dashboard in financial_handler.go
+	activities, err := dashboard.GetRecentActivity(userID, 100)
+	if err != nil {
+		http.Error(w, "Failed to fetch activities", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(activities)
+}
+
+func GetInvestmentsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+
+	investments, err := repository.GetInvestments(userID)
+	if err != nil {
+		http.Error(w, "Failed to fetch investments", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(investments)
+}
+
+type UpdateGoalRequest struct {
+	GoalID       int     `json:"goal_id"`
+	TargetAmount float64 `json:"target_amount"`
+	TargetDate   string  `json:"target_date"`
+}
+
+func UpdateGoalHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userID := r.Context().Value(middleware.UserIDKey).(int)
+	var req UpdateGoalRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid payload", http.StatusBadRequest)
+		return
+	}
+
+	if err := repository.UpdateGoal(userID, req.GoalID, req.TargetAmount, req.TargetDate); err != nil {
+		http.Error(w, "Failed to update goal", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message":"Goal updated successfully"}`))
+}
+
+

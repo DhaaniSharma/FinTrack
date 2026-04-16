@@ -1,8 +1,8 @@
 /* GLOBAL DASHBOARD RESET */
 .dashboard-page {
   min-height: 100vh;
-  background: #0B1F3B; /* Deep Blue Background */
-  font-family: sans-serif;
+  background: #191c2b; /* Moniex Dark Indigo Background */
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .dashboard-container {
@@ -13,10 +13,10 @@
 
 /* SIDEBAR */
 .sidebar {
-  width: 230px;
-  background: #07142A; /* Darker Navy for contrast */
+  width: 240px;
+  background: #141622; /* Darker Slate for sidebar */
   color: white;
-  padding: 25px 20px;
+  padding: 30px 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -37,26 +37,28 @@
 .menu li {
   display: flex;
   align-items: center;
-  padding: 12px 15px;
-  border-radius: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
   cursor: pointer;
-  margin-bottom: 10px;
-  color: #94A3B8;
+  margin-bottom: 8px;
+  color: #94a3b8;
   font-weight: 500;
   transition: all 0.2s ease;
+  font-size: 15px;
 }
 
 .menu li:hover,
 .menu .active {
-  background: #163A6B; /* Slate Blue Hover */
+  background: #23315a; /* Deep distinct active badge */
   color: white;
+  font-weight: 600;
 }
 
 /* ICON STYLING */
 .menu-icon {
-  width: 18px;
-  height: 18px;
-  margin-right: 12px;
+  width: 20px;
+  height: 20px;
+  margin-right: 14px;
 }
 
 /* MAIN WRAPPER */
@@ -78,24 +80,32 @@
 }
 
 .search-bar {
-  width: 300px;
-  padding: 12px 20px;
-  border-radius: 25px;
+  width: 350px;
+  padding: 12px 24px;
+  border-radius: 30px;
   border: none;
-  background: rgba(255,255,255,0.08);
-  color: white;
+  background: #f4efe8; /* Sand beige search bar matches Moniex */
+  color: #1e293b;
   outline: none;
+  font-weight: 500;
 }
 
 .search-bar::placeholder {
-  color: #94A3B8;
+  color: #64748b;
 }
 
 .profile {
-  background: rgba(255,255,255,0.08);
-  padding: 10px 20px;
-  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  padding: 10px 24px;
+  border-radius: 30px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+}
+.profile:hover {
+  background: rgba(255,255,255,0.1);
 }
 
 /* DASHBOARD BODY */
@@ -124,21 +134,21 @@
 }
 
 /* UNIFIED WARM WHITE CARDS */
-.card, .chart-box, .cashflow{
-  background: #FCFBF8; /* Warm White */
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+.card, .chart-box, .cashflow {
+  background: #f4efe8; /* Warm Beige from Moniex */
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: none;
 }
 
 .side-card { 
   width: 100%;
   min-height: 180px;
   box-sizing: border-box;
-  background: #FCFBF8;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  background: #f4efe8;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: none;
 }
 
 /* SKELETON HEIGHTS */
@@ -159,7 +169,7 @@
 
 /* SPENDING BEHAVIOR EXCEPTION */
 .ml-card {
-  background: linear-gradient(135deg, #163A6B 0%, #0B1F3B 100%);
+  background: linear-gradient(135deg, #24356e 0%, #15192c 100%);
 }
 .ml-card h4 {
   color: #94A3B8 !important;
@@ -168,7 +178,7 @@
 /* TYPOGRAPHY */
 h4 {
   margin: 0;
-  font-size: 15px;
-  color: #1E293B; /* Deep slate for readability on warm white */
+  font-size: 16px;
+  color: #1e293b; /* Deep slate for readability on beige */
   font-weight: 600;
 }

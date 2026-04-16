@@ -66,7 +66,10 @@ func main() {
 	mux.HandleFunc("/api/expenses", middleware.AuthMiddleware(handler.CreateExpenseHandler))
 	mux.HandleFunc("/api/incomes", middleware.AuthMiddleware(handler.CreateIncomeHandler))
 	mux.HandleFunc("/api/investments", middleware.AuthMiddleware(handler.CreateInvestmentHandler))
+	mux.HandleFunc("/api/investments/all", middleware.AuthMiddleware(handler.GetInvestmentsHandler))
 	mux.HandleFunc("/api/goals", middleware.AuthMiddleware(handler.CreateGoalHandler))
+	mux.HandleFunc("/api/goals/update", middleware.AuthMiddleware(handler.UpdateGoalHandler))
+	mux.HandleFunc("/api/activity", middleware.AuthMiddleware(handler.GetActivityHandler))
 
 	//  ML Override (NEW from incoming)
 	mux.HandleFunc("/api/ml/override", middleware.AuthMiddleware(handler.CreateOverrideHandler))

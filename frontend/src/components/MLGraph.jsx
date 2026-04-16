@@ -16,7 +16,7 @@ function MLGraph() {
       setLastDate("");
       setLastExpense("");
 
-      const res = await fetch("http://localhost:5000/plot", {
+      const res = await fetch("http://localhost:5001/plot", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,7 +48,7 @@ function MLGraph() {
 
   const handleRetrain = async () => {
     try {
-      await fetch("http://localhost:5000/retrain", {
+      await fetch("http://localhost:5001/retrain", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

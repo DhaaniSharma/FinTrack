@@ -14,6 +14,7 @@ type DashboardResponse struct {
 	ExpenseBreakdown map[string]float64    `json:"expense_breakdown"`
 	MLSpenderType    string                `json:"ml_spender_type"`
 	ActiveGoals      []models.Goal         `json:"active_goals"`
+	RecentActivity   []models.Activity     `json:"recent_activity"`
 }
 
 func GetDashboardData(userID int) (*DashboardResponse, error) {
@@ -28,6 +29,7 @@ func GetDashboardData(userID int) (*DashboardResponse, error) {
 	}
 
 	goals, _ := GetActiveGoals(userID)
+	recent, _ := GetRecentActivity(userID, 100)
 
 	input := mlclient.ExpenseInput{
 		FoodAndDrink:     breakdown["food_and_drink"],
@@ -58,5 +60,6 @@ func GetDashboardData(userID int) (*DashboardResponse, error) {
 		ExpenseBreakdown: breakdown,
 		MLSpenderType:    spenderType,
 		ActiveGoals:      goals,
+		RecentActivity:   recent,
 	}, nil
 }

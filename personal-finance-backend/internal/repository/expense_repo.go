@@ -7,8 +7,8 @@ import (
 )
 
 func CreateExpense(expense models.Expense) error {
-	query := `INSERT INTO expenses (user_id, category, amount, expense_date) VALUES ($1, $2, $3, $4)`
-	_, err := database.DB.Exec(context.Background(), query, expense.UserID, expense.Category, expense.Amount, expense.ExpenseDate)
+	query := `INSERT INTO expenses (user_id, category, description, amount, expense_date) VALUES ($1, $2, $3, $4, $5)`
+	_, err := database.DB.Exec(context.Background(), query, expense.UserID, expense.Category, expense.Description, expense.Amount, expense.ExpenseDate)
 	return err
 }
 

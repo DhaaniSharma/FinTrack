@@ -20,3 +20,22 @@ func CreateInvestmentsBatch(investments []models.Investment) error {
 	}
 	return nil
 }
+
+func GetInvestments(userID int) ([]models.Investment, error) {
+	query := `SELECT id, user_id, asset_type, amount, COALESCE(investment_date::TEXT, '') FROM investments WHERE user_id=$1 ORDER BY investment_date DESC`
+	rows, err := database.DB.Query(context.Background(), query, userID)
+	if err != nil {
+		return []models.Investment{}, err
+	}
+	defer rows.Close()
+
+	var invs []models.Investment
+	for rows.Next() {
+		var i models.Investment
+		if err := rows.Scan(&i.ID, &i.UserID, &i.AssetType, &i.Amount, &i.InvestmentDate); err == nil {
+			invs = append(invs, i)
+		}
+	}
+	return invs, nil
+}
+

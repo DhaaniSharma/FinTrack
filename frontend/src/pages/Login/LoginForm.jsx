@@ -39,6 +39,7 @@ function LoginForm() {
     if (res.ok) {
       alert("Login successful ✅")
       localStorage.setItem("token", data?.token)
+      navigate("/dashboard")
     } else {
       alert(
         data?.error ||
@@ -120,7 +121,7 @@ function LoginForm() {
         Create New Account
       </button>
 
-      <div className="login-FOOTER">
+      <div className="login-footer">
         <img
           src={FinTrackLogo}
           alt="FinTrack"
