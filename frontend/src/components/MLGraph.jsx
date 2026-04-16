@@ -93,7 +93,7 @@ function MLGraph() {
           type="number"
           value={end}
           onChange={(e) => setEnd(e.target.value)}
-          placeholder="End Month"
+          placeholder="Months"
           style={{
             padding: "10px",
             borderRadius: "8px",
